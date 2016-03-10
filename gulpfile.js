@@ -11,39 +11,16 @@ var uglify       = require('gulp-uglify');
 var connect      = require('gulp-connect');
 var open         = require('gulp-open');
 var bootlint    = require('gulp-bootlint');
+var sass = require('gulp-sass');
 //var livereload = require('gulp-livereload');
-
 // https://www.npmjs.com/package/gulp-s3
+
 var s3 = require("gulp-s3");
-//var tar  = require('gulp-tar');
-//var gzip = require('gulp-gzip');
 
 var Paths = {
   HERE                 : './',
-  UIKIT               : 'uikit',
-  IMAGES               : 'images',
-  ASSETS_DEPLOY        : 'public',
-  DIST                 : 'dist',
-  DIST_TOOLKIT_JS      : 'dist/toolkit.js',
-  LESS_TOOLKIT_SOURCES : './less/toolkit*',
-  LESS                 : './less/**/**',
-  DEPLOY               :  'public',
-  DIST_DEPLOY          :  'public/dist',
-  JS                   : [
-      './js/bootstrap/transition.js',
-      './js/bootstrap/alert.js',
-      './js/bootstrap/affix.js',
-      './js/bootstrap/button.js',
-      './js/bootstrap/carousel.js',
-      './js/bootstrap/collapse.js',
-      './js/bootstrap/dropdown.js',
-      './js/bootstrap/modal.js',
-      './js/bootstrap/tooltip.js',
-      './js/bootstrap/popover.js',
-      './js/bootstrap/scrollspy.js',
-      './js/bootstrap/tab.js',
-      './js/custom/*'
-    ],
+  ASSETS                : './assets',
+  DEPLOY               :  './public',
   FILES                 : [
     '*.html'
   ]
@@ -53,11 +30,10 @@ var Paths = {
 gulp.task('default', ['preview']);
 
 // Builds the bootstrap theme. Minifies CSS and JS.
-gulp.task('build', ['less-min', 'js-min']);
+gulp.task('build', ['sass']);
 
 gulp.task('watch', function () {
-  gulp.watch(Paths.LESS, ['less-min']);
-  gulp.watch(Paths.JS,   ['js-min']);
+  gulp.task('sass:watch');
 });
 
 gulp.task('preview', ['server'], function () {
@@ -65,7 +41,7 @@ gulp.task('preview', ['server'], function () {
     .pipe(open({uri: 'http://localhost:9001/'}));
 });
 
-gulp.task('server', function () {
+gulp.task('server', ['copy'], function () {
   connect.server({
     root: '',
     port: 9001,
@@ -73,12 +49,12 @@ gulp.task('server', function () {
   });
 });
 
-gulp.task('publish-preview', ['copy','publish-server'], function () {
+gulp.task('publish-preview', ['publish-server'], function () {
   gulp.src(__filename)
     .pipe(open({uri: 'http://localhost:9001/'}));
 });
 
-gulp.task('publish-server', function () {
+gulp.task('publish-server', ['copy'], function () {
   connect.server({
     root: 'public',
     port: 9001,
@@ -91,9 +67,13 @@ gulp.task('copy',['copy-assets'], function() {
     .pipe(gulp.dest(Paths.DEPLOY));
 });
 
-gulp.task('copy-assets', function() {
-  return gulp.src([Paths.UIKIT + '/**', Paths.IMAGES + '/**'],{base:"."})
-    .pipe(gulp.dest(Paths.ASSETS_DEPLOY));
+gulp.task('copy-assets', ['sass'], function() {
+  return gulp.src([Paths.ASSETS + '/js', 
+                   Paths.ASSETS + '/css', 
+                   Paths.ASSETS + '/images',
+                   Paths.ASSETS + '/bootstrap', 
+                   Paths.ASSETS + '/fonts'], {base:"."})
+    .pipe(gulp.dest(Paths.DEPLOY));
 });
 
 gulp.task('publish', ['copy'], function() {
@@ -112,39 +92,19 @@ gulp.task('bootlint', function() {
     }));
 });
 
-gulp.task('less', function () {
-  return gulp.src(Paths.LESS_TOOLKIT_SOURCES)
+gulp.task('sass', function () {
+  return gulp.src(Paths.ASSETS + '/sass/ASSETS.scss')
     .pipe(sourcemaps.init())
-    .pipe(less())
+    .pipe(sass({ 
+      style: 'expanded',
+      sourceComments: 'normal'
+    }).on('error', sass.logError))
     .pipe(autoprefixer())
-    .pipe(sourcemaps.write(Paths.HERE))
-    .pipe(gulp.dest('dist'));
+    .pipe(sourcemaps.write('./'))
+    .pipe(gulp.dest(Paths.ASSETS + '/css'));
+});
+ 
+gulp.task('sass:watch', function () {
+  gulp.watch(Paths.ASSETS + '/sass/**/*.scss', ['sass']);
 });
 
-gulp.task('less-min', ['less'], function () {
-  return gulp.src(Paths.LESS_TOOLKIT_SOURCES)
-    .pipe(sourcemaps.init())
-    .pipe(less())
-    .pipe(minifyCSS())
-    .pipe(autoprefixer())
-    .pipe(rename({
-      suffix: '.min'
-    }))
-    .pipe(sourcemaps.write(Paths.HERE))
-    .pipe(gulp.dest(Paths.DIST));
-});
-
-gulp.task('js', function () {
-  return gulp.src(Paths.JS)
-    .pipe(concat('toolkit.js'))
-    .pipe(gulp.dest(Paths.DIST));
-});
-
-gulp.task('js-min', ['js'], function () {
-  return gulp.src(Paths.DIST_TOOLKIT_JS)
-    .pipe(uglify())
-    .pipe(rename({
-      suffix: '.min'
-    }))
-    .pipe(gulp.dest(Paths.DIST));
-});
