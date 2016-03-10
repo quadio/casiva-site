@@ -1,25 +1,25 @@
-var gulp         = require('gulp');
-var path         = require('path');
-var fs           = require('fs');
-var less         = require('gulp-less');
-var autoprefixer = require('gulp-autoprefixer');
-var sourcemaps   = require('gulp-sourcemaps');
-var minifyCSS    = require('gulp-minify-css');
-var rename       = require('gulp-rename');
-var concat       = require('gulp-concat');
-var uglify       = require('gulp-uglify');
-var connect      = require('gulp-connect');
-var open         = require('gulp-open');
-var bootlint     = require('gulp-bootlint');
-var sass         = require('gulp-sass');
-var del          = require('del');
+const gulp         = require('gulp');
+const path         = require('path');
+const fs           = require('fs');
+const cache        = require('gulp-cached');
+const autoprefixer = require('gulp-autoprefixer');
+const sourcemaps   = require('gulp-sourcemaps');
+const minifyCSS    = require('gulp-minify-css');
+const rename       = require('gulp-rename');
+const concat       = require('gulp-concat');
+const uglify       = require('gulp-uglify');
+const connect      = require('gulp-connect');
+const open         = require('gulp-open');
+const bootlint     = require('gulp-bootlint');
+const sass         = require('gulp-sass');
+const del          = require('del');
+const s3 = require("gulp-s3");
+//const livereload = require('gulp-livereload');
 
-//var livereload = require('gulp-livereload');
 // https://www.npmjs.com/package/gulp-s3
 
-var s3 = require("gulp-s3");
 
-var Paths = {
+const Paths = {
   HERE                 : './',
   ASSETS                : './assets',
   DEPLOY               :  './public',
@@ -47,7 +47,7 @@ gulp.task('preview', ['server'], function () {
     .pipe(open({uri: 'http://localhost:9001/'}));
 });
 
-gulp.task('server', ['copy'], function () {
+gulp.task('server', ['sass'], function () {
   connect.server({
     root: '',
     port: 9001,
@@ -98,8 +98,9 @@ gulp.task('bootlint', function() {
     }));
 });
 
-gulp.task('sass', ['clean'], function () {
+gulp.task('sass', function () {
   return gulp.src(Paths.ASSETS + '/sass/uikit.scss')
+    
     .pipe(sourcemaps.init())
     .pipe(sass({ 
       style: 'expanded',
