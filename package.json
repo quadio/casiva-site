@@ -9,6 +9,7 @@
     "start": "./node_modules/.bin/gulp docs"
   },
   "devDependencies": {
+    "del": "^2.2.0",
     "gulp": "^3.9.0",
     "gulp-autoprefixer": "^2.3.1",
     "gulp-aws": "0.0.5",

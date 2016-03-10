@@ -10,8 +10,10 @@ var concat       = require('gulp-concat');
 var uglify       = require('gulp-uglify');
 var connect      = require('gulp-connect');
 var open         = require('gulp-open');
-var bootlint    = require('gulp-bootlint');
-var sass = require('gulp-sass');
+var bootlint     = require('gulp-bootlint');
+var sass         = require('gulp-sass');
+var del          = require('del');
+
 //var livereload = require('gulp-livereload');
 // https://www.npmjs.com/package/gulp-s3
 
@@ -30,7 +32,11 @@ var Paths = {
 gulp.task('default', ['preview']);
 
 // Builds the bootstrap theme. Minifies CSS and JS.
-gulp.task('build', ['sass']);
+gulp.task('build', ['copy']);
+
+gulp.task('clean', function () {
+  return del([Paths.DEPLOY]);
+});
 
 gulp.task('watch', function () {
   gulp.task('sass:watch');
@@ -67,12 +73,12 @@ gulp.task('copy',['copy-assets'], function() {
     .pipe(gulp.dest(Paths.DEPLOY));
 });
 
-gulp.task('copy-assets', ['sass'], function() {
-  return gulp.src([Paths.ASSETS + '/js', 
-                   Paths.ASSETS + '/css', 
-                   Paths.ASSETS + '/images',
-                   Paths.ASSETS + '/bootstrap', 
-                   Paths.ASSETS + '/fonts'], {base:"."})
+gulp.task('copy-assets', ['clean','sass'], function() {
+  return gulp.src([Paths.ASSETS + '/js/**/*', 
+                   Paths.ASSETS + '/css/**/*', 
+                   Paths.ASSETS + '/images/**/*',
+                   Paths.ASSETS + '/bootstrap/**/*', 
+                   Paths.ASSETS + '/fonts/**/*'], {base:"."})
     .pipe(gulp.dest(Paths.DEPLOY));
 });
 
@@ -92,8 +98,8 @@ gulp.task('bootlint', function() {
     }));
 });
 
-gulp.task('sass', function () {
-  return gulp.src(Paths.ASSETS + '/sass/ASSETS.scss')
+gulp.task('sass', ['clean'], function () {
+  return gulp.src(Paths.ASSETS + '/sass/uikit.scss')
     .pipe(sourcemaps.init())
     .pipe(sass({ 
       style: 'expanded',
