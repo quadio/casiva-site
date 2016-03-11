@@ -9,6 +9,7 @@
     "start": "./node_modules/.bin/gulp docs"
   },
   "devDependencies": {
+    "browser-sync": "^2.11.1",
     "del": "^2.2.0",
     "gulp": "^3.9.0",
     "gulp-autoprefixer": "^2.3.1",
@@ -28,6 +29,7 @@
     "gulp-s3": "^0.3.0",
     "gulp-sass": "^2.2.0",
     "gulp-sourcemaps": "^1.5.2",
-    "gulp-uglify": "^1.2.0"
+    "gulp-uglify": "^1.2.0",
+    "run-sequence": "^1.1.5"
   }
 }
